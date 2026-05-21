@@ -6,8 +6,7 @@ import random
 from datetime import datetime
 import os
 
-from app.main import db
-from app.models import Product, PostHistory
+from app.models import db, Product, PostHistory
 from app.services.claude_service import ClaudeService
 from app.services.sns_service import SNSService
 

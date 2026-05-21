@@ -1,11 +1,8 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__, template_folder='../templates', static_folder='../static')
@@ -17,6 +14,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
+    from app.models import db, Product, PostHistory, UserPreference
+
     db.init_app(app)
 
     from app.routes.api import api
@@ -26,7 +25,6 @@ def create_app():
     app.register_blueprint(ui)
 
     with app.app_context():
-        from app.models import Product, PostHistory, UserPreference
         db.create_all()
 
     from app.services.scheduler import start_scheduler

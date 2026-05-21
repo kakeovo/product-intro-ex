@@ -1,48 +1,47 @@
 ﻿from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from flask_sqlalchemy import SQLAlchemy
 
-Base = declarative_base()
+db = SQLAlchemy()
 
-class Product(Base):
+class Product(db.Model):
     __tablename__ = 'products'
 
-    id = Column(Integer, primary_key=True)
-    url = Column(String(2048), unique=True, nullable=False, index=True)
-    title = Column(String(256), nullable=False)
-    description = Column(Text)
-    image_url = Column(String(2048))
-    category = Column(String(128))
-    is_affiliate = Column(Boolean, default=False)
-    affiliate_url = Column(String(2048))
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    last_reviewed_at = Column(DateTime(timezone=True))
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(2048), unique=True, nullable=False, index=True)
+    title = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.Text)
+    image_url = db.Column(db.String(2048))
+    category = db.Column(db.String(128))
+    is_affiliate = db.Column(db.Boolean, default=False)
+    affiliate_url = db.Column(db.String(2048))
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_reviewed_at = db.Column(db.DateTime(timezone=True))
 
     def __repr__(self):
         return f'<Product {self.id}: {self.title}>'
 
-class PostHistory(Base):
+class PostHistory(db.Model):
     __tablename__ = 'post_histories'
 
-    id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False, index=True)
-    platform = Column(String(50), nullable=False)
-    post_content = Column(Text)
-    posted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    status = Column(String(20), default='success')
-    error_message = Column(Text)
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False, index=True)
+    platform = db.Column(db.String(50), nullable=False)
+    post_content = db.Column(db.Text)
+    posted_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    status = db.Column(db.String(20), default='success')
+    error_message = db.Column(db.Text)
 
     def __repr__(self):
         return f'<PostHistory {self.id}: {self.platform} ({self.status})>'
 
-class UserPreference(Base):
+class UserPreference(db.Model):
     __tablename__ = 'user_preferences'
 
-    id = Column(Integer, primary_key=True)
-    category_weight = Column(Text)  # JSON
-    liked_count = Column(Integer, default=0)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    id = db.Column(db.Integer, primary_key=True)
+    category_weight = db.Column(db.Text)  # JSON
+    liked_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f'<UserPreference {self.id}>'

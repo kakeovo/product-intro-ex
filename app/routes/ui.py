@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from app.main import db
-from app.models import Product, PostHistory
+from app.models import db, Product, PostHistory
 from sqlalchemy import func
 from datetime import datetime, timedelta
 

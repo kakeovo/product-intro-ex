@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
-from app.main import db
-from app.models import Product, PostHistory
+from app.models import db, Product, PostHistory
 from app.utils.metadata_extractor import extract_metadata
 import requests
 from PIL import Image
