@@ -42,7 +42,7 @@
         <a href="{{ url_for('ui.products_list', page=products.prev_num) }}">前へ</a>
         {% endif %}
 
-        {% for page_num in products.iter_pages(left_edge=1, left_ellipsis=2, right_ellipsis=2, right_edge=1) %}
+        {% for page_num in products.iter_pages(left_edge=1, right_edge=1) %}
             {% if page_num %}
                 {% if page_num == products.page %}
                 <span class="page-current">{{ page_num }}</span>
