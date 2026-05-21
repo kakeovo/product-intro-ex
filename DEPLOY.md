@@ -1,99 +1,138 @@
-# 本番デプロイ手順（Render 無料）
+# 本番デプロイ手順（永遠無料）
+
+Render + Neon.tech の完全無料組み合わせ。PostgreSQL が 90 日後に自動課金されません。
 
 ## ステップ1: GitHub へプッシュ
 
 ```bash
 cd C:\Users\kubok\product-intro-ex
-
-git init
-git add .
-git commit -m "Initial commit: Product Intro EX app"
-git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/product-intro-ex.git
+git branch -M main
 git push -u origin main
 ```
 
-## ステップ2: Render でデプロイ
+## ステップ2: Neon.tech で PostgreSQL を作成
 
-1. https://render.com にアクセス → サインアップ
-2. 左メニュー "Blueprint" → "New Blueprint Instance"
-3. GitHub リポジトリを連携
-4. リポジトリを選択 → "Deploy"
+1. **サインアップ**
+   - https://neon.tech にアクセス
+   - Google/GitHub でサインアップ
 
-**自動デプロイされるもの：**
-- Python Web Service（Flask アプリ）
-- PostgreSQL Database（無料）
-- 環境変数自動設定
+2. **プロジェクト作成**
+   - "Create project" をクリック
+   - プロジェクト名：`product-intro-ex`
+   - Region：Tokyo（またはお近くの地域）
 
-## ステップ3: 環境変数を設定
+3. **接続文字列を取得**
+   - "Connection string" タブ
+   - "Connection string" をコピー
+   - 形式：`postgresql://user:password@host/dbname`
 
-Render ダッシュボード → Web Service 選択 → "Environment"
+## ステップ3: Render でデプロイ
+
+1. **サインアップ**
+   - https://render.com にアクセス
+   - GitHub でサインアップ
+
+2. **Web Service を作成**
+   - ダッシュボード → "New Web Service"
+   - GitHub リポジトリを選択：`product-intro-ex`
+   - 以下を入力：
+     - **Name**: `product-intro-ex`
+     - **Runtime**: Python 3.11
+     - **Build command**: `pip install -r requirements.txt`
+     - **Start command**: `gunicorn wsgi:app`
+
+3. **"Create Web Service" をクリック**
+
+⏳ **デプロイ開始：** 3-5分待つ
+
+## ステップ4: 環境変数を設定
+
+Render ダッシュボード → Web Service → "Environment"
 
 以下を追加：
 
 ```
-CLAUDE_API_KEY=sk-...  (あなたの Claude API キー)
-NOTE_API_KEY=...        (Note API キー、オプション)
-TWITTER_API_KEY=...     (Twitter API キー、オプション)
+DATABASE_URL=postgresql://...  (Neon.tech から取得)
+CLAUDE_API_KEY=sk-...           (Claude API キー)
 SECRET_KEY=your-random-secret-key-here
+POST_TIME=09:00
+SCHEDULER_TIMEZONE=Asia/Tokyo
 ```
 
-**DATABASE_URL は自動設定されます（Render PostgreSQL）**
+**Neon.tech の接続文字列をコピペするときの注意：**
+```
+# コピーした文字列の最後に ?sslmode=require が付いているなら削除しない
+# そのままペースト
+```
 
-## ステップ4: デプロイ確認
+## ステップ5: デプロイ確認
 
-- ログを確認：Render ダッシュボード → "Logs"
-- 以下が表示されたら成功：
-  ```
-  Scheduler started. Daily post at 09:00 JST
-  ```
+1. **Render Logs を確認**
+   ```
+   Scheduler started. Daily post at 09:00 JST
+   ```
 
-- アプリにアクセス：
-  ```
-  https://your-app-name.onrender.com
-  ```
+2. **Web にアクセス**
+   ```
+   https://your-app-name.onrender.com
+   ```
 
-## ステップ5: 毎日の自動投稿確認
+3. **ダッシュボードが表示される** → 成功 ✅
 
-- 09:00 JST に自動で商品が投稿される
-- Render Logs で投稿ログを確認
-- Web UI → 投稿履歴 で履歴確認
+## 永遠無料の条件
 
-## 無料枠の制限
-
-| サービス | 無料枠 | 制限 |
+| サービス | 無料枠 | 期限 |
 |---------|--------|------|
-| Render Web | 無料 | 15分無使用で停止、手動再起動必要 |
-| PostgreSQL | 90日無料 | 以降有料化（約$7/月） |
-| Claude API | $5クレジット | 超過したら課金 |
+| Render Web | ∞ | なし |
+| Neon PostgreSQL | 3GB | **永遠無料** ✅ |
+| Claude API | $5 | 初期クレジット |
 
-**推奨：** 本番運用時は Render PostgreSQL を有料化（月$7）に切り替え
+→ **データベースは 100% 永遠無料**
 
 ## トラブルシューティング
 
-### デプロイが失敗する
-- ログを確認：Render Logs
-- requirements.txt に全パッケージが入っているか確認
-- Python version 指定を確認（3.11）
+### データベース接続エラー
+```
+Error: could not connect to server
+```
+- Neon.tech の接続文字列を再確認
+- DATABASE_URL にスペースがないか確認
+- Neon.tech のプロジェクトがアクティブか確認
 
-### スケジューラーが動かない
-- Flask アプリが起動していることを確認
-- Logs に "Scheduler started" があるか確認
-- 時刻設定：POSTドTIME=09:00 (JST)
+### Scheduler が起動しない
+```
+Scheduler started というログが出ない
+```
+- Flask アプリが完全に起動しているか確認
+- Logs に Python エラーがないか確認
 
 ### API キーエラー
-- Render Environment で設定を確認
-- キーに空白がないか確認
-- 無料ティアで API 制限がないか確認
+```
+API error: invalid key
+```
+- Claude API キーが正確か確認
+- 初期 $5 クレジットが残っているか確認
 
-## ローカルテスト（オプション）
-
-デプロイ前にローカルで本番環境をシミュレート：
+## ローカルでテスト
 
 ```bash
-$env:DATABASE_URL = "postgresql://..."
+$env:DATABASE_URL = "postgresql://user:pass@host/db"
 $env:CLAUDE_API_KEY = "sk-..."
 .\venv\Scripts\python.exe -m gunicorn wsgi:app
 ```
 
-http://localhost:8000 でアクセス可能
+http://localhost:8000 でアクセス
+
+## Neon.tech で DB を確認
+
+1. Neon.tech ダッシュボード → プロジェクト
+2. "SQL Editor" で直接 DB を操作可能
+3. 商品・投稿履歴が保存されているか確認
+
+## 参考
+
+- [Neon.tech ドキュメント](https://neon.tech/docs)
+- [Render ドキュメント](https://render.com/docs)
+- [Flask ドキュメント](https://flask.palletsprojects.com)
+
