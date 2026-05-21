@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}商品管理 - 商品紹介EX{% endblock %}
+
+{% block content %}
+<div class="products-page">
+    <h2>商品管理</h2>
+
+    <div class="products-header">
+        <p>登録済み商品: {{ products.total }}</p>
+        <a href="{{ url_for('ui.add_product') }}" class="btn btn-primary">新規追加</a>
+    </div>
+
+    {% if products.items %}
+    <div class="products-grid">
+        {% for product in products.items %}
+        <div class="product-card">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.title }}" class="product-image">
+            {% else %}
+            <div class="product-image-placeholder">画像なし</div>
+            {% endif %}
+
+            <div class="product-content">
+                <h3>{{ product.title }}</h3>
+                <p class="product-category">{{ product.category }}</p>
+                <p class="product-url"><a href="{{ product.url }}" target="_blank">詳細を見る</a></p>
+                <p class="product-description">{{ product.description[:100] if product.description else '説明なし' }}...</p>
+                <p class="product-date">登録: {{ product.created_at.strftime('%Y-%m-%d') if product.created_at else '-' }}</p>
+
+                <form method="POST" action="{{ url_for('ui.delete_product', product_id=product.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-small" onclick="return confirm('削除しますか？')">削除</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ページネーション -->
+    <div class="pagination">
+        {% if products.has_prev %}
+        <a href="{{ url_for('ui.products_list', page=products.prev_num) }}">前へ</a>
+        {% endif %}
+
+        {% for page_num in products.iter_pages(left_edge=1, left_ellipsis=2, right_ellipsis=2, right_edge=1) %}
+            {% if page_num %}
+                {% if page_num == products.page %}
+                <span class="page-current">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('ui.products_list', page=page_num) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+            <span>...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+        <a href="{{ url_for('ui.products_list', page=products.next_num) }}">次へ</a>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <p>商品がまだ登録されていません。<a href="{{ url_for('ui.add_product') }}">追加</a></p>
+    {% endif %}
+</div>
+{% endblock %}

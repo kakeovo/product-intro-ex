@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}ダッシュボード - 商品紹介EX{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>ダッシュボード</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>登録商品</h3>
+            <p class="stat-number">{{ total_products }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>総投稿数</h3>
+            <p class="stat-number">{{ total_posts }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>先週の投稿</h3>
+            <p class="stat-number">{{ posts_last_week }}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>最近の投稿</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>商品ID</th>
+                    <th>プラットフォーム</th>
+                    <th>投稿日</th>
+                    <th>ステータス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in recent_posts %}
+                <tr>
+                    <td>{{ post.product_id }}</td>
+                    <td>{{ post.platform }}</td>
+                    <td>{{ post.posted_at.strftime('%Y-%m-%d %H:%M') if post.posted_at else '-' }}</td>
+                    <td><span class="badge badge-{{ post.status }}">{{ post.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>アクション</h3>
+        <a href="{{ url_for('ui.add_product') }}" class="btn btn-primary">商品を追加</a>
+    </div>
+</div>
+{% endblock %}

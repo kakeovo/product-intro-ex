@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}投稿履歴 - 商品紹介EX{% endblock %}
+
+{% block content %}
+<div class="history-page">
+    <h2>投稿履歴</h2>
+
+    <p>総投稿数: {{ history.total }}</p>
+
+    {% if history.items %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>商品ID</th>
+                <th>プラットフォーム</th>
+                <th>投稿日時</th>
+                <th>ステータス</th>
+                <th>内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in history.items %}
+            <tr>
+                <td>{{ post.id }}</td>
+                <td>{{ post.product_id }}</td>
+                <td><span class="badge">{{ post.platform }}</span></td>
+                <td>{{ post.posted_at.strftime('%Y-%m-%d %H:%M:%S') if post.posted_at else '-' }}</td>
+                <td><span class="badge badge-{{ post.status }}">{{ post.status }}</span></td>
+                <td class="post-preview">{{ post.post_content[:100] if post.post_content else 'なし' }}...</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- ページネーション -->
+    <div class="pagination">
+        {% if history.has_prev %}
+        <a href="{{ url_for('ui.post_history', page=history.prev_num) }}">前へ</a>
+        {% endif %}
+
+        {% for page_num in history.iter_pages(left_edge=1, left_ellipsis=2, right_ellipsis=2, right_edge=1) %}
+            {% if page_num %}
+                {% if page_num == history.page %}
+                <span class="page-current">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('ui.post_history', page=page_num) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+            <span>...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if history.has_next %}
+        <a href="{{ url_for('ui.post_history', page=history.next_num) }}">次へ</a>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <p>投稿履歴がまだありません。</p>
+    {% endif %}
+</div>
+{% endblock %}
