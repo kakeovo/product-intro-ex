@@ -2,9 +2,13 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
 from app.models import db, Product, PostHistory
 from app.utils.metadata_extractor import extract_metadata
+from app.services.claude_service import ClaudeService
+import logging
 import requests
 from PIL import Image
 from io import BytesIO
+
+logger = logging.getLogger(__name__)
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -93,3 +97,43 @@ def get_history():
         'posted_at': h.posted_at.isoformat(),
         'status': h.status
     } for h in history]), 200
+
+@api.route('/products/<int:product_id>/generate-intro', methods=['POST'])
+def generate_product_intro_api(product_id):
+    """商品の紹介文を生成（Note用 + Twitter用）"""
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+
+    try:
+        # Claude で紹介文を生成
+        claude_service = ClaudeService()
+
+        note_intro = claude_service.generate_product_intro(
+            product.title,
+            product.description or "",
+            product.image_url
+        )
+
+        twitter_intro = claude_service.generate_twitter_intro(
+            product.title,
+            product.description or ""
+        )
+
+        if not note_intro or not twitter_intro:
+            logger.error(f"Failed to generate intros for product {product_id}")
+            return jsonify({'error': 'Failed to generate intros'}), 500
+
+        affiliate_url = product.affiliate_url or product.url
+
+        return jsonify({
+            'success': True,
+            'product_id': product_id,
+            'note_intro': note_intro,
+            'twitter_intro': twitter_intro,
+            'affiliate_url': affiliate_url
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error generating intros: {e}")
+        return jsonify({'error': str(e)}), 500

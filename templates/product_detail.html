@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} - 商品紹介EX{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+    <div class="product-header">
+        <a href="{{ url_for('ui.products_list') }}">← 商品一覧に戻る</a>
+    </div>
+
+    <div class="detail-container">
+        <!-- 商品情報 -->
+        <div class="product-info-section">
+            {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.title }}" class="product-detail-image">
+            {% else %}
+                <div class="product-detail-image-placeholder">画像なし</div>
+            {% endif %}
+
+            <div class="product-meta">
+                <h1>{{ product.title }}</h1>
+                <p class="category">{{ product.category }}</p>
+                {% if product.description %}
+                <p class="description">{{ product.description }}</p>
+                {% endif %}
+                <p class="date">登録日: {{ product.created_at.strftime('%Y-%m-%d') }}</p>
+
+                <div class="links">
+                    <a href="{{ product.url }}" target="_blank" class="btn btn-secondary">元商品ページを開く</a>
+                    <a href="{{ product.affiliate_url or product.url }}" target="_blank" class="btn btn-primary">
+                        アフィリエイトリンク
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 紹介文生成エリア -->
+        <div class="intro-section">
+            <h2>紹介文を生成</h2>
+            <button id="generate-btn" class="btn btn-primary">生成する</button>
+            <div id="loading" style="display:none;">生成中...</div>
+
+            <!-- Note 用紹介文 -->
+            <div class="intro-container" style="display:none;" id="note-intro-container">
+                <h3>Note 用紹介文</h3>
+                <div id="note-intro" class="intro-text"></div>
+                <button class="btn btn-secondary copy-btn" data-target="note-intro">コピー</button>
+            </div>
+
+            <!-- Twitter 用紹介文 -->
+            <div class="intro-container" style="display:none;" id="twitter-intro-container">
+                <h3>Twitter 用紹介文</h3>
+                <div id="twitter-intro" class="intro-text"></div>
+                <button class="btn btn-secondary copy-btn" data-target="twitter-intro">コピー</button>
+            </div>
+
+            <!-- アフィリエイトリンク表示 -->
+            <div class="intro-container" style="display:none;" id="affiliate-container">
+                <h3>アフィリエイトリンク</h3>
+                <div id="affiliate-link" class="link-text"></div>
+                <button class="btn btn-secondary copy-btn" data-target="affiliate-link">コピー</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-detail {
+    padding: 20px;
+}
+
+.product-header {
+    margin-bottom: 20px;
+}
+
+.product-header a {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.product-header a:hover {
+    text-decoration: underline;
+}
+
+.detail-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.product-info-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.product-detail-image {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.product-detail-image-placeholder {
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    margin-bottom: 20px;
+    border: 2px dashed #ddd;
+}
+
+.product-meta h1 {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+}
+
+.category {
+    color: #666;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.description {
+    margin: 15px 0;
+    line-height: 1.6;
+    color: #444;
+}
+
+.date {
+    color: #999;
+    font-size: 13px;
+    margin: 10px 0;
+}
+
+.links {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.links .btn {
+    flex: 1;
+}
+
+.intro-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.intro-section h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.intro-container {
+    margin-top: 30px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.intro-container h3 {
+    margin-top: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.intro-text {
+    padding: 15px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+    color: #333;
+}
+
+.link-text {
+    padding: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 12px;
+    color: #0066cc;
+}
+
+.copy-btn {
+    margin-top: 10px;
+}
+
+#generate-btn {
+    margin-bottom: 20px;
+}
+
+#loading {
+    color: #666;
+    font-size: 14px;
+    padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .links {
+        flex-direction: column;
+    }
+
+    .links .btn {
+        width: 100%;
+    }
+
+    .product-detail-image-placeholder {
+        max-width: 100%;
+    }
+}
+</style>
+
+<script>
+document.getElementById('generate-btn').addEventListener('click', async function() {
+    const productId = {{ product.id }};
+    const loading = document.getElementById('loading');
+    const generateBtn = document.getElementById('generate-btn');
+
+    loading.style.display = 'block';
+    generateBtn.disabled = true;
+
+    try {
+        const response = await fetch(`/api/products/${productId}/generate-intro`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            alert('紹介文の生成に失敗しました');
+            return;
+        }
+
+        const data = await response.json();
+
+        // 紹介文を表示
+        document.getElementById('note-intro').textContent = data.note_intro;
+        document.getElementById('twitter-intro').textContent = data.twitter_intro;
+        document.getElementById('affiliate-link').textContent = data.affiliate_url;
+
+        // コンテナを表示
+        document.getElementById('note-intro-container').style.display = 'block';
+        document.getElementById('twitter-intro-container').style.display = 'block';
+        document.getElementById('affiliate-container').style.display = 'block';
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました');
+    } finally {
+        loading.style.display = 'none';
+        generateBtn.disabled = false;
+    }
+});
+
+// コピー機能
+document.querySelectorAll('.copy-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const text = document.getElementById(targetId).textContent;
+
+        navigator.clipboard.writeText(text).then(() => {
+            // ボタンの表示を一時的に変更
+            const originalText = this.textContent;
+            this.textContent = 'コピーしました！';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 2000);
+        }).catch(() => {
+            alert('コピーに失敗しました');
+        });
+    });
+});
+</script>
+
+{% endblock %}

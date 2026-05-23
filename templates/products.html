@@ -22,7 +22,7 @@
             {% endif %}
 
             <div class="product-content">
-                <h3>{{ product.title }}</h3>
+                <h3><a href="{{ url_for('ui.product_detail', product_id=product.id) }}">{{ product.title }}</a></h3>
                 <p class="product-category">{{ product.category }}</p>
                 <p class="product-url"><a href="{{ product.url }}" target="_blank">詳細を見る</a></p>
                 <p class="product-description">{{ product.description[:100] if product.description else '説明なし' }}...</p>

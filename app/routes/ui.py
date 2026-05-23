@@ -84,3 +84,13 @@ def post_history():
     page = request.args.get('page', 1, type=int)
     history = PostHistory.query.order_by(PostHistory.posted_at.desc()).paginate(page=page, per_page=20)
     return render_template('history.html', history=history)
+
+@ui.route('/products/<int:product_id>', methods=['GET'])
+def product_detail(product_id):
+    """商品詳細ページ"""
+    product = Product.query.get(product_id)
+    if not product:
+        flash('商品が見つかりません', 'error')
+        return redirect(url_for('ui.products_list'))
+
+    return render_template('product_detail.html', product=product)
